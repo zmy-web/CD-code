@@ -59,8 +59,8 @@ st= sort(unique(as.numeric(alltrain$hospitalid)))
 adjmat <- readRDS(paste(path,'localadjmat.rds',sep=''))
 strength<- readRDS(paste(path,'localstrength.rds',sep=''))
 scoreM <- read.csv(paste(path,'locscoreDT.csv',sep=''))
-score <- scoreM$score
-
+origscore <- scoreM$score
+score <- (origScore-min(origScore))/(max(origScore)-min(origScore))
 
 #si= c(1:4,10,11,13:15,18:22,24)
 #si=c(1:4,7:30)
@@ -257,3 +257,4 @@ names(prelist) <- st[si]
 write.csv(arc_df,paste(path,'K4/C42Net.csv',sep=''))
 write.csv(measM,paste(path,'K4/measMC42.csv',sep = ''))
 saveRDS(prelist,paste(path,'K4/prelistC42.rds',sep = ''))
+
