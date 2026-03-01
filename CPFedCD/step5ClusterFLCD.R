@@ -60,16 +60,24 @@ adjmat <- readRDS(paste(path,'localadjmat.rds',sep=''))
 strength<- readRDS(paste(path,'localstrength.rds',sep=''))
 scoreM <- read.csv(paste(path,'locscoreDT.csv',sep=''))
 origscore <- scoreM$score
+
+#max-min normalization 
 score <- (origScore-min(origScore))/(max(origScore)-min(origScore))
 
-#si= c(1:4,10,11,13:15,18:22,24)
-#si=c(1:4,7:30)
-#si=c(1:4,7:26)
-si=27:30
-N=58#
+#Reciprocal normalization
+#score <- (1/abs(origScore))/sum(1/abs(origScore))
+
+#Sigmoid-zscore normalization
+#score <- 1/(1+exp(-scale(origScore)))
+
+
+si= c(1:4,10,11,13:16,18:22,24)
+#si=c(7:9,12,17,23,25,26)
+#si=c(5,6)
+#si=27:30
+N=58# num of nodes
 summat <- matrix(0,nrow =N,ncol=N)
 wsum <-0
-
 
 for (s in 1:length(si)) {
   net <- strength[[si[s]]]#
@@ -90,6 +98,17 @@ for (s in 1:length(si)) {
   wiadj<- idscore*(rS*numEdg/(N*(N-1)))*adj_mi_mat #2
   summat<- summat+wiadj
   wsum <- wsum+idscore*(rS*numEdg/(N*(N-1)))
+
+  ########## Sensitivity analysis#############################
+  # edge_comp <- numEdg / (N * (N - 1))
+  # # Sample Proportion: ni / N
+  # sample_proportion <- rS
+  # # Additive 
+  # omega <- (1/3)*idscore + (1/3)*edge_comp + (1/3)*rS
+  # wiadj=omega*adj_mi_mat 
+  # summat<- summat+wiadj
+  # wsum <- wsum+omega
+ 
 }
 
 avgsummat <- round(summat/wsum,4)#
@@ -254,7 +273,8 @@ colMeans(measM[,1:6])
 names(prelist) <- st[si]
 
 
-write.csv(arc_df,paste(path,'K4/C42Net.csv',sep=''))
-write.csv(measM,paste(path,'K4/measMC42.csv',sep = ''))
-saveRDS(prelist,paste(path,'K4/prelistC42.rds',sep = ''))
+write.csv(arc_df,paste(path,'K4/C41Net.csv',sep=''))
+write.csv(measM,paste(path,'K4/measMC41.csv',sep = ''))
+saveRDS(prelist,paste(path,'K4/prelistC41.rds',sep = ''))
+
 
