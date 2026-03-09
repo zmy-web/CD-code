@@ -9,7 +9,7 @@ np.random.seed(seed)
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
 
-df = pd.read_csv('D:/Program Files/R/Rfile/SC_FL_CD/1023/alltrain.csv')
+df = pd.read_csv('.../alltrain.csv')
 df= df.apply(pd.to_numeric,errors='coerce')
 
 r"""
@@ -165,26 +165,26 @@ id = np.unique(siteid)
 
 
 from kmodes.kmodes import KModes
-dtlist = []          ## 空列表
+dtlist = []          ## 
 
 for i in range(len(id)):
     np.random.seed(seed)
     print('this is runing:',i)
     onedf = df[df['hospitalid']==id[i]]
-    onedt = onedf.drop(['hospitalid'],axis=1)#去掉SiteID进行聚类
+    onedt = onedf.drop(['hospitalid'],axis=1)#
     #path='E:/deepset/site%s'% id[i]+'.csv'
     #onedt.to_csv(path,index=False)
     
     km = KModes(n_clusters=5,init='Huang',n_init=5,verbose=1)
     clusters =km.fit_predict(onedt)
     kmc= km.cluster_centroids_
-    dtlist.append(kmc)   ## 使用 append() 添加元素
+    dtlist.append(kmc)   ## 
 
 
 data_list = np.array(dtlist)
 t = torch.tensor(data_list,dtype= torch.float)
 
-##计算客户端分布
+##
 deep_sets = InvLinear(in_features=58, out_features=10)
 np.random.seed(seed)
 
@@ -192,8 +192,9 @@ y1 = deep_sets.forward(t)
 y =  y1.detach().numpy()
 y2 = pd.DataFrame(y)
 
-# 使用列表表达式生成拼接后的字符串列表
+# 
 siteid = ["site" + str(i) for i in id]
 y2.index = siteid
+
 
 #y2.to_csv('.../featureVector.csv',index=True)
