@@ -33,12 +33,12 @@ library(Rcpp)
 # reticulate::py_install("pandas")
 # reticulate::py_install("matplotlib")
 #py_config()
-#use_python("C:/Users/zmy/AppData/Local/Programs/Python/Python39", required = TRUE)
+
 source_python("D:/Program Files/R/Rfile/SC_FL_CD/notears.py")
 
 
 ###################################################################
-path='D:/Program Files/R/Rfile/SC_FL_CD/1031/'
+path='.../SC_FL_CD/1031/'
 traintest<- readRDS(paste(path,'traintest.rds',sep = ''))
 alltrain<- traintest$train
 alltest<- traintest$test
@@ -56,21 +56,25 @@ st= sort(unique(as.numeric(alltrain$hospitalid)))
 #step2
 
 ########################################################
+#Extract the model's adjacency matrix, edge weights, and network scores from the local training data."
+
 adjmat <- readRDS(paste(path,'localadjmat.rds',sep=''))
 strength<- readRDS(paste(path,'localstrength.rds',sep=''))
 scoreM <- read.csv(paste(path,'locscoreDT.csv',sep=''))
 origscore <- scoreM$score
 
-#max-min normalization 
+#Different model aggregation strategies or sensitivity analyses.
+
+#mothod 1: max-min normalization 
 score <- (origScore-min(origScore))/(max(origScore)-min(origScore))
 
-#Reciprocal normalization
+##mothod 2:Reciprocal normalization
 #score <- (1/abs(origScore))/sum(1/abs(origScore))
 
-#Sigmoid-zscore normalization
+#mothod 3: Sigmoid-zscore normalization
 #score <- 1/(1+exp(-scale(origScore)))
 
-
+#Client IDs categorized by groups
 si= c(1:4,10,11,13:16,18:22,24)
 #si=c(7:9,12,17,23,25,26)
 #si=c(5,6)
@@ -83,7 +87,7 @@ for (s in 1:length(si)) {
   net <- strength[[si[s]]]#
   numEdg=nrow(net)#
   numtolSam= nrow(alltrain)#
-  numLocSam=nrow(subset(alltrain,hospitalid==st[si[s]]))#每个中心的样本量
+  numLocSam=nrow(subset(alltrain,hospitalid==st[si[s]]))#
   rS <- numLocSam/numtolSam#
   idscore= score[si[s]]#
   adjM <- adjmat[[si[s]]]#
@@ -99,7 +103,7 @@ for (s in 1:length(si)) {
   summat<- summat+wiadj
   wsum <- wsum+idscore*(rS*numEdg/(N*(N-1)))
 
-  ########## Sensitivity analysis#############################
+  ########## Sensitivity analysis,method 4: Additive model#############################
   # edge_comp <- numEdg / (N * (N - 1))
   # # Sample Proportion: ni / N
   # sample_proportion <- rS
@@ -155,7 +159,7 @@ modstr <- function(fnet){
   ####
   sing <- c(setdiff(pad ,chd),noselnode)
   p1 <- paste('[',sing, ']' ,sep = '',collapse = '')#
-  #子节点拼接
+  #
   p2 <- c()
   for(j in 1:length(chd)){
     sf <- subset(fnet,to==chd[j])
@@ -216,7 +220,7 @@ arc_df <- cbind(grid01, weight = adj_long$value)
 # 
 arc_df <- arc_df[arc_df$weight != 0, ]
 head(arc_df,n=10)
-# tmp <- data.frame(from='COM11',to='label',weight=1)
+
 # arc_df <- rbind(tmp,arc_df)
 #***********from-->to
 
@@ -228,7 +232,7 @@ graphviz.plot(baydag,shape = "circle" ,main = 'fusion' ,layout = 'dot',
 ###*********************************************###
 
 ###*********************************************###
-#step4：
+#step5：Model Performance Evaluation
 
 measM <- data.frame(matrix(0,nrow = length(si),ncol =9,
                            dimnames =list(c(st[si]),
@@ -238,7 +242,7 @@ for(s in 1:length(si)){
   
   train = subset(alltrain,hospitalid==st[si[s]])
   test = subset(alltest,hospitalid==st[si[s]])
-  ##step2：
+  #
   set.seed(100)
   fitted <- bn.fit(baydag, train[,-1],method='bayes')
   pre <- predict(fitted,data=test[,-1],node='label',method ='bayes-lw',prob = TRUE)#
@@ -276,5 +280,6 @@ names(prelist) <- st[si]
 write.csv(arc_df,paste(path,'K4/C41Net.csv',sep=''))
 write.csv(measM,paste(path,'K4/measMC41.csv',sep = ''))
 saveRDS(prelist,paste(path,'K4/prelistC41.rds',sep = ''))
+
 
 
